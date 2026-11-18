@@ -1,4 +1,4 @@
-import time, platform
+﻿import sys, time, platform
 from pathlib import Path
 import numpy as np
 import torch
@@ -6,7 +6,8 @@ from ultralytics import YOLO
 
 ROOT = Path(__file__).resolve().parents[1]
 imgs = sorted((ROOT / "data" / "yolo" / "Japan" / "images" / "test").glob("*.jpg"))[:60]
-model = YOLO(str(ROOT / "models" / "japan_best.pt"))
+model = YOLO(str(ROOT / "models" / (sys.argv[1] if len(sys.argv) > 1 else "japan_best.pt")),
+             task="detect")
 print("python", platform.python_version(), "torch", torch.__version__,
       "threads", torch.get_num_threads())
 

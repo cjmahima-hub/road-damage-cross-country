@@ -4,3 +4,5 @@ models/
 runs/
 __pycache__/
 *.zip
+
+reports/

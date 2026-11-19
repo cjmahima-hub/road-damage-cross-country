@@ -123,3 +123,38 @@ Training and evaluation were done in Google Colab (free GPU) with `notebooks/bas
 - **Colab (training, and the cross-country evaluation in `results/results.csv`):** Tesla T4 GPU, Python 3.13.16, torch 2.14.1 (CUDA 13.0 build), Ultralytics 8.4.215.
 - **Local (splits, ONNX export, INT8, latency, Streamlit demo):** Windows laptop, Intel i5-13420H CPU, 16 GB RAM, no dedicated GPU, Python 3.14.7, torch 2.15.0, Ultralytics 8.4.215, onnx 1.23.2, onnxruntime 1.32.0. Full list in `requirements.txt`.
 - The two environments differ in Python and torch versions, so re-running may not reproduce the numbers exactly.
+
+## How to reproduce
+
+The dataset and model weights are not in this repository. Steps 1 to 4 and 6 run locally (Windows, PowerShell, venv active, `pip install -r requirements.txt`); step 5 runs in Colab. This order was worked out from what each script reads and writes; I have not re-run the whole pipeline from scratch on a clean checkout.
+
+1. **Get the data.** Download the RDD2022 zip from Figshare (DOI 10.6084/m9.figshare.21431547, about 12 GB) and save it as `data/raw/RDD2022_released_through_CRDDC2022.zip`.
+2. **Extract and label statistics.**
+
+        python scripts\extract_countries.py
+        python scripts\label_stats.py
+        python scripts\clean_boxes.py
+
+   These unpack India, Japan, Czech and United_States into `data/raw/rdd2022/`, write `data/processed/boxes.csv`, then keep only the 4 target classes in `data/processed/boxes_4class.csv`.
+3. **Build the splits** (method in `docs/split_plan.md`). `leakage_check.py` creates the thumbnail cache that `make_splits.py` needs; the split files are written to `data/processed/splits_<Country>.csv`.
+
+        python scripts\make_groups.py Czech India Japan United_States
+        python scripts\leakage_check.py Czech India Japan United_States
+        python scripts\make_splits.py Czech India Japan United_States
+
+4. **Copy the splits and convert to YOLO format.** `convert_yolo.py` reads `splits/splits_<Country>.csv`, so copy the files there first (the committed `splits/` folder holds these files), then convert into `data/yolo/<Country>/`.
+
+        Copy-Item data\processed\splits_*.csv splits\
+        python scripts\convert_yolo.py Czech India Japan United_States
+
+5. **Train and evaluate in Colab.** The notebook `notebooks/baseline.ipynb` expects each `data/yolo/<Country>` folder zipped as `<Country>.zip` and stored at `MyDrive/road-damage/` in Google Drive (it unzips them to `/content/data`). It trains the four models and writes `results.csv`. The Japan-trained model is saved as `runs/japan_equal1588_s0/weights/best.pt`; copy it to `models/japan_best.pt` for the local steps below.
+6. **Compression and latency (local).**
+
+        python scripts\export_onnx.py
+        python scripts\quantize_int8_headfp32.py
+        python scripts\sweep_compression.py
+        python scripts\retime_latency.py
+
+   These write `results/compression.csv`, `results/latency_repeats.csv` and `docs/accuracy_vs_latency.png`. `scripts\plot_matrix.py` redraws `docs/matrix_equal1588.png` from `results/results.csv`.
+
+The other scripts in `scripts/` (near-duplicate and leakage checks, sample viewers, `val_local.py`, `bench_cpu.py`, `check_onnx_diff.py`, `quantize_int8.py`) are analysis and check scripts from this work, not part of the main pipeline above.

@@ -168,7 +168,7 @@ The demo compares the FP32 and INT8 versions of the Japan-trained model side by 
 
         pip install -r requirements.txt
         tar -xf road-damage-weights.zip
-        streamlit run app/streamlit_app.py
+        python -m streamlit run app/streamlit_app.py
 
 3. Open http://localhost:8501, then upload an image or a short clip (at most 40 frames). The app shows the FP32 and INT8 ONNX models at 320, 416, 512 or 640 input size, with the time per frame and the detected class counts.
 

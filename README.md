@@ -158,3 +158,24 @@ The dataset and model weights are not in this repository. Steps 1 to 4 and 6 run
    These write `results/compression.csv`, `results/latency_repeats.csv` and `docs/accuracy_vs_latency.png`. `scripts\plot_matrix.py` redraws `docs/matrix_equal1588.png` from `results/results.csv`.
 
 The other scripts in `scripts/` (near-duplicate and leakage checks, sample viewers, `val_local.py`, `bench_cpu.py`, `check_onnx_diff.py`, `quantize_int8.py`) are analysis and check scripts from this work, not part of the main pipeline above.
+
+## Run the demo
+
+The demo compares the FP32 and INT8 versions of the Japan-trained model side by side. It needs the weights, which are not in the repository.
+
+1. Download `road-damage-weights.zip` (53.5 MiB) from the Releases page of this repository (release v1.0). SHA-256: `B09A547B7FF2D1E1A75EDD80EF233E6C568574243B919A119FFB2CA446E6A1AE`
+2. Put the zip in the project root and run (Windows, PowerShell):
+
+        pip install -r requirements.txt
+        tar -xf road-damage-weights.zip
+        streamlit run app/streamlit_app.py
+
+3. Open http://localhost:8501, then upload an image or a short clip (at most 40 frames). The app shows the FP32 and INT8 ONNX models at 320, 416, 512 or 640 input size, with the time per frame and the detected class counts.
+
+This is the model trained on Japan only. The cross-country results above say it will do much worse on roads that look different, so treat the demo as a way to see the compression trade-off, not as a working road inspector. Times depend on your CPU.
+
+## Licences and attribution
+
+- **Code in this repository:** MIT (see `LICENSE`).
+- **Data:** RDD2022 (Arya et al.), CC BY-SA 4.0. The images and labels are not redistributed here; `splits/` lists only image IDs and their split. Please attribute the dataset if you reuse anything derived from it.
+- **Ultralytics:** training, export and the demo use the Ultralytics package and start from its pretrained `yolo11n.pt`. Ultralytics distributes these under AGPL-3.0 (with a separate Enterprise licence). The released weights were fine-tuned from that checkpoint, so please treat them as AGPL-3.0 as well. Whether the CC BY-SA terms of the training data also apply to trained weights is not something I have settled. This section is not legal advice.

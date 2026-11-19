@@ -85,3 +85,24 @@ What this shows:
 - INT8 saves a lot of file size (about 58% at 640) and only about 9 to 11% of CPU time, with a small accuracy loss.
 - Lowering the input size is just as effective as quantising: FP32 at 512 (0.3664 mAP50, 28.9 ms) is about as accurate as INT8 at 640 (0.3655, 34.6 ms) and faster. The accuracy difference is far below what one seed can resolve.
 - Single runs of this measurement were noisy (max times reach 68.7 ms at 640 FP32), which is why I report medians of repeats.
+## What didn't work
+
+- **Plain INT8 quantisation collapsed.** Quantising the whole model gave mAP50 0.0000. Keeping the 84 Detect-head nodes (of 320) in FP32 restored it (0.3655 at 640).
+- **ONNX FP32 scores lower than PyTorch FP32 and I do not know why.** Japan test, 640: PyTorch 0.3986, ONNX 0.3750. Raw model outputs agree to 0.0025 px on 20 images, so I suspect a difference in how validation letterboxes the image, but I did not test this.
+- **Full-size cross-country runs were not done.** Colab was too slow, so all countries are compared at the same 1,588 training images.
+- **A wrong first conclusion about latency.** A single timing pass suggested INT8 was slower at 320 and 416. Five interleaved repeats showed INT8 faster at every size; the single pass was affected by an unexplained machine slowdown and was discarded.
+
+More detail is in `docs/what_didnt_work.md`.
+
+## Limitations
+
+- One training seed, no confidence intervals, no significance tests.
+- Evaluation uses my own splits of the labelled train folders, because the official test folders have no labels. Scores are therefore not comparable to published RDD2022 results.
+- Rare-class test sets are tiny (US D40 = 29 boxes, India D10 = 18), so no per-class claims.
+- The split method uses crude pixel similarity with hand-judged cut-offs; near-copies at correlation 0.92 to 0.95 remain, and exact duplicates exist. A pale vertical bar in several Japan images is unexplained.
+- One model family (YOLO11n) and one training length (50 epochs).
+- The India images come mainly from Delhi, Gurugram and Haryana. Nothing here says anything about other regions or about deployment readiness.
+
+## Planned but not done
+
+Augmentation ablations, class-imbalance handling, knowledge distillation, a MobileNet-based detector, multiple seeds with confidence intervals, full-size cross-country runs, and finding the cause of the ONNX-versus-PyTorch gap.

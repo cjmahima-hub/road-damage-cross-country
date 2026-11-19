@@ -106,3 +106,14 @@ More detail is in `docs/what_didnt_work.md`.
 ## Planned but not done
 
 Augmentation ablations, class-imbalance handling, knowledge distillation, a MobileNet-based detector, multiple seeds with confidence intervals, full-size cross-country runs, and finding the cause of the ONNX-versus-PyTorch gap.
+
+## Training setup
+
+Training and evaluation were done in Google Colab (free GPU) with `notebooks/baseline.ipynb`. The notebook mounts my Google Drive and unzips the per-country data from it, so the paths are specific to my setup and need editing to re-run.
+
+- Model: YOLO11n, starting from Ultralytics' pretrained `yolo11n.pt` checkpoint (not random weights), so some general image knowledge is inherited from pretraining.
+- Settings (all runs identical): 50 epochs, image size 640, batch 16, AdamW with lr0 = 0.001, seed 0, `patience=50`, so early stopping never triggers. I did not change any augmentation setting; Ultralytics defaults were used.
+- Training data: for India, Japan and the United States, a random sample of 1,588 images from the train split (shuffled with Python's `random.Random(0)`); for Czech, its whole train split (1,588 images).
+- Model selection: each run's `best.pt` (Ultralytics' best-epoch checkpoint, chosen on the validation split) was scored once on every country's test split. The test splits were not used for training or for choosing a checkpoint.
+- Training time: 23.2 to 29.6 minutes per run (`train_min` in `results/results.csv`).
+- A 3-epoch Czech run was used as a smoke test of the pipeline; it is not part of any result.

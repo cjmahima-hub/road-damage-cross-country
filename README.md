@@ -117,3 +117,9 @@ Training and evaluation were done in Google Colab (free GPU) with `notebooks/bas
 - Model selection: each run's `best.pt` (Ultralytics' best-epoch checkpoint, chosen on the validation split) was scored once on every country's test split. The test splits were not used for training or for choosing a checkpoint.
 - Training time: 23.2 to 29.6 minutes per run (`train_min` in `results/results.csv`).
 - A 3-epoch Czech run was used as a smoke test of the pipeline; it is not part of any result.
+
+## Environments
+
+- **Colab (training, and the cross-country evaluation in `results/results.csv`):** Tesla T4 GPU, Python 3.13.16, torch 2.14.1 (CUDA 13.0 build), Ultralytics 8.4.215.
+- **Local (splits, ONNX export, INT8, latency, Streamlit demo):** Windows laptop, Intel i5-13420H CPU, 16 GB RAM, no dedicated GPU, Python 3.14.7, torch 2.15.0, Ultralytics 8.4.215, onnx 1.23.2, onnxruntime 1.32.0. Full list in `requirements.txt`.
+- The two environments differ in Python and torch versions, so re-running may not reproduce the numbers exactly.
